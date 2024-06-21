@@ -1,37 +1,41 @@
 const { ethers } = require("hardhat");
 
 async function main() {
+
   const [deployer] = await ethers.getSigners();
+
+  // console.log("使用账号部署合约:", deployer.address);
+
+  const initialSupply = ethers.parseEther("1000000"); // 初始供应量
+  const initialOwner = deployer.address; // 初始所有者
+  //  // 部署 ERC20 合约
+  // const LiuToken = await ethers.getContractFactory("LiuToken");
+
+  // // 部署 LiuToken 合约
+  // const liuToken = await LiuToken.deploy(initialSupply, initialOwner);
+  // console.log(liuToken)
+  // await liuToken.deployed();
+
+  // console.log("LiuToken 部署在地址:", liuToken.address);
 
   console.log("使用账号部署合约:", deployer.address);
 
-  const balance = await deployer.provider.getBalance(deployer.address);
-  console.log("Account balance:", balance);
+  const Token = await ethers.getContractFactory("LiuToken");
+  const token = await Token.deploy(initialSupply, initialOwner);
+  console.log("ERC20 地址:", token.target);
 
-  // 部署 SimpleERC20 合约
-  // const SimpleERC20 = await ethers.getContractFactory("SimpleERC20");
-  // console.log(SimpleERC20.deployed)
-  // const simpleERC20 = await SimpleERC20.deploy();
-  // await simpleERC20.deployed();
-  // console.log("SimpleERC20 deployed to:", simpleERC20.address);
-
-  // 部署 SimpleERC20 合约
-  const SimpleERC20 = await ethers.getContractFactory("SimpleERC20");
-  const simpleERC20 = await SimpleERC20.deploy();
-  await simpleERC20.interface.deploy();
-  console.log("SimpleERC20 部署到:", simpleERC20.address);
 
   // 部署 SimpleERC721 合约
-  const SimpleERC721 = await ethers.getContractFactory("SimpleERC721");
-  const simpleERC721 = await SimpleERC721.deploy();
-  await simpleERC721.deployed();
-  console.log("SimpleERC721 deployed to:", simpleERC721.address);
+  const SimpleERC721 = await ethers.getContractFactory("LiuNFT");
+  const simpleERC721 = await SimpleERC721.deploy(initialOwner);
+  // await simpleERC721.deployed();
+  console.log("ERC721 地址:", simpleERC721.target);
 
   // 部署 NFTMarket 合约
   const NFTMarket = await ethers.getContractFactory("NFTMarket");
-  const nftMarket = await NFTMarket.deploy(simpleERC20.address, simpleERC721.address);
-  await nftMarket.deployed();
-  console.log("NFTMarket deployed to:", nftMarket.address);
+  const nftMarket = await NFTMarket.deploy(token.target);
+  // await nftMarket.deployed();
+  console.log("NFTMarket 地址:", nftMarket.target);
 }
 
 main().catch((error) => {
