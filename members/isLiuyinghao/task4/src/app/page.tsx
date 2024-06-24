@@ -2,6 +2,9 @@
 
 import { useAccount, useConnect, useDisconnect } from 'wagmi'
 
+import ConnectWallet from '@components/ConnectWallet'
+import ListNFT from '@components/ListNFT'
+
 function App() {
   const account = useAccount()
   const { connectors, connect, status, error } = useConnect()
@@ -9,6 +12,8 @@ function App() {
 
   return (
     <>
+    <ConnectWallet/>
+    <ListNFT contractAddress={marketplaceAddress} erc721Abi={erc721Abi}/>
       <div>
         <h2>Account</h2>
 
