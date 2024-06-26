@@ -21,8 +21,10 @@
       "@/*": ["./src/*"],
       "@components/*": ["./src/components/*"],
       "@hooks/*": ["./hooks/*"],
+      "@type/*": ["./type/*"],
       "@utils/*": ["./utils/*"],
-      "@styles/*": ["./styles/*"]
+      "@styles/*": ["./styles/*"],
+      "@contract/*": ["./contract/*"]
     },
     "noImplicitAny": false,
   },

@@ -13,7 +13,7 @@ export default function ConnectWallet() {
             <p>{address}</p>
           ))}
         </div>
-        <button onClick={() => disconnect()}> Disconnect </button>
+        <button className="bg-sky-500 hover:bg-sky-700" onClick={() => disconnect()}> Disconnect </button>
       </div>
     )
   }
@@ -23,7 +23,7 @@ export default function ConnectWallet() {
     <div>
       {
         connectors.map((connector) => (
-          <button key={connector.id} onClick={() => connect({ connector })} >
+          <button key={connector.id} onClick={() => connect({ connector })} className="bg-sky-500 hover:bg-sky-700">
             Connect with {connector.name}
           </button>
         ))}
