@@ -39,32 +39,59 @@ async function main() {
   console.log("NFT铸造交易哈希:", mintTx.hash);
 
   // 获取NFT的tokenId（假设为0）
-  const tokenId = 0;
   // 上架NFT
-  const price = ethers.parseUnits("0.1", 18); // 1个ERC20代币
-  const approveTx = await erc721Contract.approve(marketplaceAddress, tokenId);
-  await approveTx.wait();
+  // const price = ethers.parseUnits("0.1", 18); // 1个ERC20代币
+  // const approveTx = await erc721Contract.approve(marketplaceAddress, tokenId);
+  // await approveTx.wait();
 
-  const listTx = await marketplaceContract.listItem(erc721Address, tokenId, price, "https://picture.gptkong.com/20240625/1053076954bdd44a9696b79799655e21ad.png");
-  await listTx.wait();
-  console.log("上架NFT交易哈希:", listTx.hash);
+  // const listTx = await marketplaceContract.listItem(erc721Address, tokenId, price, "https://picture.gptkong.com/20240625/1053076954bdd44a9696b79799655e21ad.png");
+  // await listTx.wait();
+  // console.log("上架NFT交易哈希:", listTx.hash);
+
+  const tokenId = 1;
+  const price = ethers.parseUnits("0.1", 18); // 1个ERC20代币
+  // 上架NFT
+  try {
+    const approveTx = await erc721Contract.approve(marketplaceAddress, tokenId);
+    await approveTx.wait();
+    console.log("NFT授权交易哈希:", approveTx.hash);
+
+    const listTx = await marketplaceContract.listItem(erc721Address, tokenId, price, "https://picture.gptkong.com/20240625/1053076954bdd44a9696b79799655e21ad.png");
+    await listTx.wait();
+    console.log("上架NFT交易哈希:", listTx.hash);
+  } catch (error) {
+    console.error("上架NFT失败:", error);
+    return;
+  }
 
   // 切换到买家
   const erc20ContractBuyer = new ethers.Contract(erc20Address, erc20Abi, buyer);
   const marketplaceContractBuyer = new ethers.Contract(marketplaceAddress, marketplaceAbi, buyer);
 
   // 增加买家账户的 ERC20 代币余额
-  const increaseBalanceTx = await erc20Contract.mint(buyer.address, ethers.parseUnits("1", 18));
-  await increaseBalanceTx.wait();
+  try {
+    const increaseBalanceTx = await erc20Contract.mint(buyer.address, ethers.parseUnits("1", 18));
+    await increaseBalanceTx.wait();
+    console.log("增加买家ERC20余额交易哈希:", increaseBalanceTx.hash);
+  } catch (error) {
+    console.error("增加ERC20余额失败:", error);
+    return;
+  }
 
-  // 批准市场合约花费买家的ERC20代币
-  const approveErc20Tx = await erc20ContractBuyer.approve(marketplaceAddress, price);
-  await approveErc20Tx.wait();
+   // 批准市场合约花费买家的ERC20代币
+   try {
+    const approveErc20Tx = await erc20ContractBuyer.approve(marketplaceAddress, price);
+    await approveErc20Tx.wait();
+    console.log("ERC20授权交易哈希:", approveErc20Tx.hash);
 
-  // 购买NFT
-  const buyTx = await marketplaceContractBuyer.purchaseItem(erc721Address, tokenId);
-  await buyTx.wait();
-  console.log("购买NFT交易哈希:", buyTx.hash);
+    // 购买NFT
+    const buyTx = await marketplaceContractBuyer.purchaseItem(erc721Address, tokenId);
+    await buyTx.wait();
+    console.log("购买NFT交易哈希:", buyTx.hash);
+  } catch (error) {
+    console.error("购买NFT失败:", error);
+  }
+
 }
 
 main().catch((error) => {

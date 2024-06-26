@@ -44,32 +44,34 @@ contract NFTMarket is ReentrancyGuard {
 
     // listItem函数允许用户将他们拥有的NFT上架出售
     function listItem(
-        IERC721 nft,
+        address nft,
         uint256 tokenId,
         uint256 price,
         string memory tokenUrl
     ) external nonReentrant {
+        IERC721 nftContract = IERC721(nft);
+
         require(price > 0, "Price must be greater than zero");
         require(
-            nft.getApproved(tokenId) == address(this) ||
-                nft.isApprovedForAll(msg.sender, address(this)),
+            nftContract.getApproved(tokenId) == address(this) ||
+                nftContract.isApprovedForAll(msg.sender, address(this)),
             "Marketplace must be approved to transfer the item"
         );
 
-        listings[address(nft)][tokenId] = Listing(
-            address(nft),
+        listings[nft][tokenId] = Listing(
+            nft,
             price,
             msg.sender,
             true,
             tokenUrl
         );
-        AllList.push(ListKey(address(nft), tokenId));
-        emit ItemListed(msg.sender, address(nft), tokenId, price);
+        AllList.push(ListKey(nft, tokenId));
+        emit ItemListed(msg.sender, nft, tokenId, price);
     }
 
     // purchaseItem函数允许买家使用ERC20代币购买市场上的NFT
-    function purchaseItem(IERC721 nft, uint256 tokenId) external nonReentrant {
-        Listing storage listing = listings[address(nft)][tokenId];
+    function purchaseItem(address nft, uint256 tokenId) external nonReentrant {
+        Listing storage listing = listings[nft][tokenId];
         require(listing.isListed, "Item is not listed for sale");
 
         uint256 price = listing.price;
@@ -93,8 +95,9 @@ contract NFTMarket is ReentrancyGuard {
         // 转移ERC20代币到卖家
         erc20Token.transferFrom(msg.sender, listing.seller, price);
 
+        IERC721 nftContract = IERC721(nft);
         // 转移NFT所有权到买家
-        nft.transferFrom(listing.seller, msg.sender, tokenId);
+        nftContract.transferFrom(listing.seller, msg.sender, tokenId);
 
         // 将NFT从市场上撤下
         delete listings[address(nft)][tokenId];
