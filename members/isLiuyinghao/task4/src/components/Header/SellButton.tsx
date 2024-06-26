@@ -31,13 +31,13 @@ function SellButton() {
         if (values.price === 0) {
             return messageApi.warning('NFT price can not be 0.')
         }
-
         writeContractAsync(genNftFuncVars('setApprovalForAll', [marketplaceAddress, true]))
-            .then(() => writeContractAsync(genGalleryFuncVars('listItem', [LiuNFTAddress, values.tokenId, values.price]))
+            .then(() => writeContractAsync(genGalleryFuncVars('listItem', [LiuNFTAddress, values.tokenId, values.price, values.url]))
                 .then(res => {
                     messageApi.success('上架成功')
                     handleClose()
                 }).catch(err => {
+                    console.log(err.message)
                     messageApi.error('上架失败')
                 })
             ).catch(err => {
@@ -60,7 +60,10 @@ function SellButton() {
                         <InputNumber min={1} precision={0} addonBefore="#" style={{ width: '100%' }} />
                     </Form.Item>
                     <Form.Item label="Price" name="price" rules={[{ required: true, message: 'Please input NFT price!' }]}>
-                        <InputNumber min={0} addonAfter="RAIC" style={{ width: '100%' }} />
+                        <InputNumber min={0} addonAfter="LOT" style={{ width: '100%' }} />
+                    </Form.Item>
+                    <Form.Item label="URL" name="url" rules={[{ required: true, message: 'Please input NFT URL!' }]}>
+                        <Input />
                     </Form.Item>
                 </Form>
             </Modal>

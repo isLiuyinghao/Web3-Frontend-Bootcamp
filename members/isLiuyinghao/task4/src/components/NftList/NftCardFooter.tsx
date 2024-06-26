@@ -1,9 +1,9 @@
 import dayjs from 'dayjs'
 import type { PropsWithChildren } from 'react'
 
-import type { NftItem } from '@type/index'
+import type { ListItem } from '@type/index'
 
-type NftCardFooterProps = PropsWithChildren<{ dataSource: NftItem }>
+type NftCardFooterProps = PropsWithChildren<{ dataSource: ListItem }>
 
 function NftCardFooter(props: NftCardFooterProps) {
   const { dataSource } = props

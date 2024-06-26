@@ -1,13 +1,11 @@
 type AddressHash = string;
 
-type NftItem = {
-    seller: AddressHash;
-    nftContract: AddressHash;
-    tokenId: number;
+type ListItem = {
+    nftContract: string;
+    price: bigint; // NFT的售价，以ERC20代币计
+    seller: string; // 卖家地址
+    isListed: boolean; // 是否已经上架
     tokenUrl: string;
-    price: bigint;
-    listedAt: bigint;
-    listing: boolean;
 }
 
-export type { AddressHash, NftItem }
+export type { ListItem }
