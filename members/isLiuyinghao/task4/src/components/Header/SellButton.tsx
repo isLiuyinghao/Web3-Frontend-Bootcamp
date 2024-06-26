@@ -1,8 +1,6 @@
 import { useState } from 'react'
 import { Button, Modal, Form, Input, InputNumber, message } from 'antd'
 import { useAccount, useWriteContract } from 'wagmi'
-import { parseUnits } from 'viem'
-// import { Address, useAccount } from '@ant-design/web3'
 
 import { LiuNFTAddress, marketplaceAddress } from '@contract/abi'
 import { genNftFuncVars, genGalleryFuncVars } from '@utils/contract'
@@ -35,18 +33,16 @@ function SellButton() {
         }
 
         writeContractAsync(genNftFuncVars('setApprovalForAll', [marketplaceAddress, true]))
-            .then(() => writeContractAsync(genGalleryFuncVars('listItem', [LiuNFTAddress, values.tokenId]))
+            .then(() => writeContractAsync(genGalleryFuncVars('listItem', [LiuNFTAddress, values.tokenId, values.price]))
                 .then(res => {
-                    console.log('sell success: ', res)
-                    messageApi.success('Sell success')
+                    messageApi.success('上架成功')
                     handleClose()
                 }).catch(err => {
-                    console.log('sell failed', err.message)
-                    messageApi.error('Sell failed')
+                    messageApi.error('上架失败')
                 })
             ).catch(err => {
                 console.log('sell failed', err.message)
-                messageApi.error('Sell failed')
+                messageApi.error('上架失败')
             })
     }
 
@@ -65,9 +61,6 @@ function SellButton() {
                     </Form.Item>
                     <Form.Item label="Price" name="price" rules={[{ required: true, message: 'Please input NFT price!' }]}>
                         <InputNumber min={0} addonAfter="RAIC" style={{ width: '100%' }} />
-                    </Form.Item>
-                    <Form.Item label="URL" name="url" rules={[{ required: true, message: 'Please input NFT URL!' }]}>
-                        <Input />
                     </Form.Item>
                 </Form>
             </Modal>

@@ -25,7 +25,7 @@ function NftList() {
   const { address: signer } = useAccount()
   const [messageApi, contextHolder] = message.useMessage()
   const { writeContractAsync } = useWriteContract()
-  const result = useReadContract(genGalleryFuncVars('listItem'))
+  const result = useReadContract(genGalleryFuncVars('listings'))
   const nfts = (result.data || []) as NftItem[]
 
   // const buyNft = (nft: NftItem) => {
