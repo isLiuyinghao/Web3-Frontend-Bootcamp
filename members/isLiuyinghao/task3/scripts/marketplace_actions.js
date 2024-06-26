@@ -2,9 +2,9 @@ const { ethers } = require("hardhat");
 const fs = require('fs');
 const path = require('path');
 
-const erc20Address = "0x9084971226C012af0A7F2543b91A9F79b011AD6e";
-const erc721Address = "0x373aC82061C6b7950f0a750647f2033016042d3e";
-const marketplaceAddress = "0xc8a249E5cc481A23512F1b5e43C9d643C189D5aC";
+const erc20Address = "0x814064e909F303885Cb4d811C7fA69168EC37090";
+const erc721Address = "0xf461c6D23b7fF1A12Fe10E54c7F6Ee25683d6EFd";
+const marketplaceAddress = "0x94dC85D6d0F73F9b2Cce2288a80Ae11A3fdA434C";
 
 // 读取ABI文件
 const getAbi = (fileName, contractName) => {
@@ -22,8 +22,7 @@ async function main() {
   const [deployer] = await ethers.getSigners();
 
   const provider = new ethers.JsonRpcProvider("https://public.stackup.sh/api/v1/node/bsc-testnet");
-  // const deployer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
-  const buyer = new ethers.Wallet('69d8eb1fe0bbfcbe5b935428ba2c50ccf7d39cd37f32a54a2a4aa4c4c4377423', provider);
+  const buyer = new ethers.Wallet('4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d', provider);
   // 连接到合约
   const erc20Contract = new ethers.Contract(erc20Address, erc20Abi, deployer);
   const erc721Contract = new ethers.Contract(erc721Address, erc721Abi, deployer);
@@ -46,7 +45,7 @@ async function main() {
   const approveTx = await erc721Contract.approve(marketplaceAddress, tokenId);
   await approveTx.wait();
 
-  const listTx = await marketplaceContract.listItem(erc721Address, tokenId, price);
+  const listTx = await marketplaceContract.listItem(erc721Address, tokenId, price, "https://picture.gptkong.com/20240625/1053076954bdd44a9696b79799655e21ad.png");
   await listTx.wait();
   console.log("上架NFT交易哈希:", listTx.hash);
 
