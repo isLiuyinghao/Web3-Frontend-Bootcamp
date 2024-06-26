@@ -1,35 +1,22 @@
 // SPDX-License-Identifier: MIT
-// Compatible with OpenZeppelin Contracts ^5.0.0
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
-contract LiuNFT is ERC721, ERC721URIStorage, Ownable {
-    uint256 private _nextTokenId;
+contract LiuNFT is ERC721 {
+    uint256 private _totalCount;
 
-    constructor(
-        address initialOwner
-    ) ERC721("LiuNFT", "LNFT") Ownable(initialOwner) {}
-
-    function safeMint(address to, string memory uri) public onlyOwner {
-        uint256 tokenId = _nextTokenId++;
-        _safeMint(to, tokenId);
-        _setTokenURI(tokenId, uri);
+    constructor() ERC721("LiuNFT", "LiuNFT") {
+        _totalCount++;
     }
 
-    // The following functions are overrides required by Solidity.
+    function mint() external returns (uint256) {
+        uint256 tokenId = _totalCount;
 
-    function tokenURI(
-        uint256 tokenId
-    ) public view override(ERC721, ERC721URIStorage) returns (string memory) {
-        return super.tokenURI(tokenId);
-    }
+        _safeMint(msg.sender, tokenId);
 
-    function supportsInterface(
-        bytes4 interfaceId
-    ) public view override(ERC721, ERC721URIStorage) returns (bool) {
-        return super.supportsInterface(interfaceId);
+        _totalCount++;
+
+        return tokenId;
     }
 }

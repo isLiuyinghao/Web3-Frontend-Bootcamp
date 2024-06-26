@@ -2,11 +2,11 @@ const { ethers } = require("hardhat");
 const fs = require('fs');
 const path = require('path');
 
-const erc20Address = "0x814064e909F303885Cb4d811C7fA69168EC37090";
-const erc721Address = "0xf461c6D23b7fF1A12Fe10E54c7F6Ee25683d6EFd";
-const marketplaceAddress = "0x94dC85D6d0F73F9b2Cce2288a80Ae11A3fdA434C";
+const erc20Address = "0x5E15b71773c7FcEec118B7c81fD706bf7AdEE625"; // ERC20 代币地址
+const erc721Address = "0x511f5698047dEAaE8711b893c9FCeED77899A5C3"; // ERC721 NFT 合约地址
+const marketplaceAddress = "0xD0655BDdF852c50e4100b1EEfA85E8780fDa6CB8"; // NFTMarket 合约地址
 
-// 读取ABI文件
+// 读取 ABI 文件
 const getAbi = (fileName, contractName) => {
   const filePath = path.resolve(__dirname, `../artifacts/contracts/${fileName}.sol/${contractName}.json`);
   const fileContent = fs.readFileSync(filePath, 'utf8');
@@ -37,16 +37,6 @@ async function main() {
   const mintTx = await erc721Contract.safeMint(deployer.address, "https://example.com/nft");
   await mintTx.wait();
   console.log("NFT铸造交易哈希:", mintTx.hash);
-
-  // 获取NFT的tokenId（假设为0）
-  // 上架NFT
-  // const price = ethers.parseUnits("0.1", 18); // 1个ERC20代币
-  // const approveTx = await erc721Contract.approve(marketplaceAddress, tokenId);
-  // await approveTx.wait();
-
-  // const listTx = await marketplaceContract.listItem(erc721Address, tokenId, price, "https://picture.gptkong.com/20240625/1053076954bdd44a9696b79799655e21ad.png");
-  // await listTx.wait();
-  // console.log("上架NFT交易哈希:", listTx.hash);
 
   const tokenId = 1;
   const price = ethers.parseUnits("0.1", 18); // 1个ERC20代币
