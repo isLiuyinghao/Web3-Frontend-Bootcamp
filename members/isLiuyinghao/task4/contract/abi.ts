@@ -1250,6 +1250,6 @@ export const NFTMarket = [
   }
 ]
 
-export const LiuTokenAddress = '0x814064e909F303885Cb4d811C7fA69168EC37090'
-export const LiuNFTAddress = '0xf461c6D23b7fF1A12Fe10E54c7F6Ee25683d6EFd'
-export const marketplaceAddress = '0x94dC85D6d0F73F9b2Cce2288a80Ae11A3fdA434C'
+export const LiuTokenAddress = '0xaa94d59cc03f98954FE5b9082E614934A61D50b8'
+export const LiuNFTAddress = '0x93FA5F0F2543b0fE3bf487131c0168Cc2cc927FE'
+export const marketplaceAddress = '0x667c256Ed0D9759f7B17eB5aaD81bC2693EE7e00'
