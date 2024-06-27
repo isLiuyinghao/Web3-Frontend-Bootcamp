@@ -1,87 +1,93 @@
 const { ethers } = require("hardhat");
-const fs = require('fs');
-const path = require('path');
-
-const erc20Address = "0x5E15b71773c7FcEec118B7c81fD706bf7AdEE625"; // ERC20 代币地址
-const erc721Address = "0x511f5698047dEAaE8711b893c9FCeED77899A5C3"; // ERC721 NFT 合约地址
-const marketplaceAddress = "0xD0655BDdF852c50e4100b1EEfA85E8780fDa6CB8"; // NFTMarket 合约地址
-
-// 读取 ABI 文件
-const getAbi = (fileName, contractName) => {
-  const filePath = path.resolve(__dirname, `../artifacts/contracts/${fileName}.sol/${contractName}.json`);
-  const fileContent = fs.readFileSync(filePath, 'utf8');
-  const jsonContent = JSON.parse(fileContent);
-  return jsonContent.abi;
-};
-
-const erc20Abi = getAbi('ERC20', 'LiuToken');
-const erc721Abi = getAbi('ERC721', 'LiuNFT');
-const marketplaceAbi = getAbi('NFTMarket', 'NFTMarket');
 
 async function main() {
-  const [deployer] = await ethers.getSigners();
+  const ERC20_ADDRESS = '0x5E15b71773c7FcEec118B7c81fD706bf7AdEE625';
+  const ERC721_ADDRESS = '0x511f5698047dEAaE8711b893c9FCeED77899A5C3';
+  const MARKETPLACE_ADDRESS = '0xD0655BDdF852c50e4100b1EEfA85E8780fDa6CB8';
+
+  const [deployer, otherAccount] = await ethers.getSigners();
 
   const provider = new ethers.JsonRpcProvider("https://public.stackup.sh/api/v1/node/bsc-testnet");
   const buyer = new ethers.Wallet('4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d', provider);
+
   // 连接到合约
-  const erc20Contract = new ethers.Contract(erc20Address, erc20Abi, deployer);
-  const erc721Contract = new ethers.Contract(erc721Address, erc721Abi, deployer);
-  const marketplaceContract = new ethers.Contract(marketplaceAddress, marketplaceAbi, deployer);
+  const Token = await ethers.getContractAt("LiuToken", ERC20_ADDRESS);
+  const SimpleERC721 = await ethers.getContractAt("LiuNFT", ERC721_ADDRESS);
+  const NFTMarket = await ethers.getContractAt("NFTMarket", MARKETPLACE_ADDRESS);
 
-  // 领取ERC20代币
-  const faucetTx = await erc20Contract.faucet();
-  await faucetTx.wait();
-  console.log("ERC20水龙头交易哈希:", faucetTx.hash);
+  const gasPrice = ethers.parseUnits("20", "gwei"); // 手动设置更高的 gas price
 
-  // 铸造一个新的NFT
-  const mintTx = await erc721Contract.safeMint(deployer.address, "https://example.com/nft");
-  await mintTx.wait();
-  console.log("NFT铸造交易哈希:", mintTx.hash);
+  // Mint 一个 NFT
+  let tx = await SimpleERC721.connect(deployer).mint({ gasPrice });
+  let receipt = await tx.wait();
 
-  const tokenId = 1;
-  const price = ethers.parseUnits("0.1", 18); // 1个ERC20代币
-  // 上架NFT
-  try {
-    const approveTx = await erc721Contract.approve(marketplaceAddress, tokenId);
-    await approveTx.wait();
-    console.log("NFT授权交易哈希:", approveTx.hash);
 
-    const listTx = await marketplaceContract.listItem(erc721Address, tokenId, price, "https://picture.gptkong.com/20240625/1053076954bdd44a9696b79799655e21ad.png");
-    await listTx.wait();
-    console.log("上架NFT交易哈希:", listTx.hash);
-  } catch (error) {
-    console.error("上架NFT失败:", error);
+  // 解析事件以获取 tokenId
+  let tokenId;
+  for (const log of receipt.logs) {
+    if (log.address === ERC721_ADDRESS && log.topics[0] === ethers.id("Transfer(address,address,uint256)")) {
+      tokenId = log.topics[3]
+      break;
+    }
+  }
+
+  if (tokenId === undefined) {
+    console.error("未能从事件中解析出 tokenId");
     return;
   }
 
-  // 切换到买家
-  const erc20ContractBuyer = new ethers.Contract(erc20Address, erc20Abi, buyer);
-  const marketplaceContractBuyer = new ethers.Contract(marketplaceAddress, marketplaceAbi, buyer);
+  console.log(`NFT Minted: 合约地址=${ERC721_ADDRESS}, Token ID=${tokenId}`);
 
-  // 增加买家账户的 ERC20 代币余额
+  // 批准 Marketplace 操作我们的 NFT
+  tx = await SimpleERC721.connect(deployer).setApprovalForAll(MARKETPLACE_ADDRESS, true, { gasPrice });
+  await tx.wait();
+  console.log(`Marketplace 批准: ${MARKETPLACE_ADDRESS} 操作 NFT`);
+
+  // 检查是否已批准
+  const isApproved = await SimpleERC721.isApprovedForAll(deployer.address, MARKETPLACE_ADDRESS);
+  console.log(`是否已批准：${isApproved}`);
+
   try {
-    const increaseBalanceTx = await erc20Contract.mint(buyer.address, ethers.parseUnits("1", 18));
-    await increaseBalanceTx.wait();
-    console.log("增加买家ERC20余额交易哈希:", increaseBalanceTx.hash);
+    console.log(`检查 Token ID: ${tokenId}`);
+    // 调试信息：检查所有者
+    const owner = await SimpleERC721.ownerOf(tokenId);
+    console.log(`NFT 所有者: ${owner}`);
   } catch (error) {
-    console.error("增加ERC20余额失败:", error);
+    console.error(`获取所有者失败: ${error.message}`);
     return;
   }
 
-   // 批准市场合约花费买家的ERC20代币
-   try {
-    const approveErc20Tx = await erc20ContractBuyer.approve(marketplaceAddress, price);
-    await approveErc20Tx.wait();
-    console.log("ERC20授权交易哈希:", approveErc20Tx.hash);
+  // 调试信息：检查上架前是否存在
+  const isListing = await NFTMarket.isListing(ERC721_ADDRESS, tokenId);
+  console.log(`是否已上架: ${isListing}`);
 
-    // 购买NFT
-    const buyTx = await marketplaceContractBuyer.purchaseItem(erc721Address, tokenId);
-    await buyTx.wait();
-    console.log("购买NFT交易哈希:", buyTx.hash);
+  const price = ethers.parseUnits("100", 2); // 设置价格为100 LIU
+  try {
+
+    // 调试信息：检查上架条件
+    const nftOwner = await SimpleERC721.ownerOf(tokenId);
+    console.log(`NFT 当前所有者: ${nftOwner}`);
+    const nftApproved = await SimpleERC721.isApprovedForAll(deployer.address, MARKETPLACE_ADDRESS);
+    console.log(`NFT 是否已批准: ${nftApproved}`);
+
+    tx = await NFTMarket.connect(deployer).sell(ERC721_ADDRESS, '1', price, "https://example.com/nft/0", { gasPrice });
+    await tx.wait();
+    console.log(`NFT 上架: 合约地址=${ERC721_ADDRESS}, Token ID=${1}, 价格=${price.toString()}`);
   } catch (error) {
-    console.error("购买NFT失败:", error);
+    console.error(`上架失败: ${error.reason || error.message}`);
+    return;
   }
 
+  // 买家批准 Marketplace 使用他的 ERC20 代币
+  tx = await Token.connect(buyer).approve(MARKETPLACE_ADDRESS, price, { gasPrice });
+  await tx.wait();
+  console.log(`Buyer 批准: ${MARKETPLACE_ADDRESS} 使用 ${price.toString()} LIU`);
+
+  // 买家购买 NFT(有问题)
+  console.log('otherAccount', otherAccount)
+  tx = await NFTMarket.connect(buyer).buy('0x511f5698047dEAaE8711b893c9FCeED77899A5C3', '1');
+  await tx.wait();
+  console.log(`NFT 购买: 合约地址=${ERC721_ADDRESS}, Token ID=${tokenId}, 价格=${price.toString()}`);
 }
 
 main().catch((error) => {
